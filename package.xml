@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package>
+  <name>wheelchair_iaslab_control</name>
+  <version>0.0.1</version>
+  <description>The wheelchair_iaslab_control package</description>
+
+  <maintainer email="alberto.gottardi@studenti.unipd.it">Alberto Gottardi</maintainer>
+
+  <author email="alberto.gottardi@studenti.unipd.it">Alberto Gottardi</author>
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roslaunch</build_depend>
+  <run_depend>wheelchair_iaslab_description</run_depend>
+
+  <run_depend>diff_drive_controller</run_depend>
+  <run_depend>joint_state_controller</run_depend>
+  <run_depend>joint_trajectory_controller</run_depend>
+  <run_depend>joy</run_depend>
+  <run_depend>rostopic</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>controller_manager</run_depend>
+  <run_depend>teleop_twist_joy</run_depend>
+  <run_depend>twist_mux</run_depend>
+
+
+  <export>  
+  </export>
+
+</package>
