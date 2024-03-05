@@ -84,7 +84,7 @@ def setup_grid():
    angle_increment = rospy.get_param('~angle_increment', 0.16) # [rad] 
    range_min = rospy.get_param('~range_min', 0) # [m]   
    range_max = rospy.get_param('~range_max', 6) # [m] 
-   frame_id = rospy.get_param('~frame_id', 'fused_scan') 
+   frame_id = rospy.get_param('~frame_id', 'wcias_base_link') 
       
    grid.angle_min = angle_min   
    grid.angle_max = angle_max   

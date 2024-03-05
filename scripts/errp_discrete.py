@@ -8,13 +8,19 @@ import time
 from rosneuro_msgs.msg import NeuroEvent
 
 # Velocities
-VELX = 0.05
-VELZ = 0.4
+VELX = 0.1
+VELZ = 0.9
+
+RATE = 100
 
 # TIMINGS
-TIME_REFRAC_PERIOD = 2
-TIME_ERROR = 1.5
-TIME_TURN = 1.5
+TIME_REFRAC_PERIOD = 2.5
+TIME_ERROR = 1
+TIME_TURN = 1
+
+PROBABILITY_INCREASE = 0.003
+MAX_PROBABILITY = 0.2
+TIME_PROBABILITY_INCREASE = 2
 
 class Codes:
     def __init__(self):
@@ -46,9 +52,9 @@ class Controller:
         self.event = NeuroEvent()
         self.cmdvel = Twist()
         # Create the rate
-        self.rate = rospy.Rate(100)
+        self.rate = rospy.Rate(RATE)
         # The probability to generate an error
-        self.probability = 0.2
+        self.probability = 0
         # Create the state (a boolean variable that indicates if it follows the requested trajectory or not)
         self.follow_order = True
         # Create the variable to indicate if it is in the refractory period
@@ -60,10 +66,16 @@ class Controller:
         self.pub_event = False
         # Create the MASK to add to the command -> default = 0
         self.event_mask = 0
+        self.first_curve = True
+        self.start_probability_increase = False
 
     def run(self):
         while not rospy.is_shutdown():
-            
+
+            if self.start_probability_increase:
+                if (self.probability < MAX_PROBABILITY):
+                    self.probability += PROBABILITY_INCREASE/RATE
+
             if self.pub_cmd:
                 self.set_velocity()
                 self.cmdpub.publish(self.cmdvel)
@@ -77,16 +89,20 @@ class Controller:
 
     def end_error(self, data = None):
         self.follow_order = True
-        self.current_command = self.codes.FORWARD
+        if (not self.current_command == self.codes.STOP):
+            self.current_command = self.codes.FORWARD
         self.event_mask = 0
 
     def end_turn(self, data = None):
-        self.current_command = self.codes.FORWARD
+        if (not self.current_command == self.codes.STOP):
+                self.current_command = self.codes.FORWARD
         self.pub_event = True
+            
 
     def end_refractory_period(self, data = None):
         self.refractory_period = False
-        self.current_command = self.codes.FORWARD
+        if (not self.current_command == self.codes.STOP):
+            self.current_command = self.codes.FORWARD
         self.event_mask = 0
 
     def set_velocity(self):
@@ -112,6 +128,7 @@ class Controller:
     def set_neuroevent(self):
         self.event.event = self.current_command + self.event_mask
         self.event.header.stamp = rospy.get_rostime()
+       
 
     def setup(self):
         self.setup_listeners()
@@ -148,12 +165,17 @@ class Controller:
             # Check if we want to turn
             elif command == self.codes.LEFT or command == self.codes.RIGHT:
 
+                if self.first_curve:
+                    self.first_curve = False
+                    self.start_probability_increase = True
+
                 # If we want to turn determine if we want to follow the order or not
                 if (rand.random() < self.probability):
                     self.follow_order = False
                     # Put a time callback to end the error
                     rospy.Timer(rospy.Duration(TIME_ERROR), self.end_error, oneshot=True)
                     self.event_mask = self.codes.ERRORMASK
+                    self.probability = 0
                 else:
                     self.event_mask = 0
 
@@ -165,8 +187,6 @@ class Controller:
 
                 # Put a time to end the curve
                 rospy.Timer(rospy.Duration(TIME_TURN), self.end_turn, oneshot=True)
-
-        
 
     
 def main():
