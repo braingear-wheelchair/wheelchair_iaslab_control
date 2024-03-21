@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import Joy 
-from geometry_msgs.msg import Twist 
+from geometry_msgs.msg import Twist, PoseStamped
 from random import *
 from rosneuro_msgs.msg import NeuroEvent
 from numpy import pi
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseActionGoal
+import actionlib
+
+from math import atan2, sqrt
 
 from proximity_grid.msg import ProximityGridMsg
 from std_srvs.srv import Empty
@@ -18,13 +22,20 @@ running = False
 
 coeff_vel_straight = 0.5
 coeff_vel_turn = 0.5
-mode = 0
+mode = 1
+
+navigation_frame = 'wcias_odom'
 
 def joy_callback(Joy): 
-   global turn, straight, stop, running
+   global turn, straight, stop, running, power
    turn = Joy.axes[2]
    straight = Joy.axes[3]
    stop = Joy.buttons[2]
+
+   if (Joy.buttons[5] == 1):
+      power = power + 1
+   if (Joy.buttons[4] == 1):
+      power = power - 1
 
    global start_srv, stop_srv
 
@@ -50,11 +61,16 @@ def setup_services():
     stop_srv  = rospy.ServiceProxy("/navigation/navigation_stop",  Empty)
 
 def gen_att(grid):
-   global straight, turn, stop
+   global straight, turn, stop, power
 
-   alpha = turn * pi/2
+   alpha = atan2(turn, straight)
+
+   d = sqrt(pow(turn, 2) + pow(straight, 2)) * power
+
    l=[]
-   d = straight + 3
+
+   if d == 0:
+      alpha = 0
 
    # Setup the angle if the point is in the back position
    if alpha < grid.angle_min:
@@ -77,11 +93,26 @@ def gen_att(grid):
    
    return l
 
+def request_new_target_callback(msg):
+    global movebase_client
+
+    pose = PoseStamped()
+    pose.header.frame_id = 'wcias_base_link'
+    pose.pose.position.x = 1
+    pose.pose.orientation.w = 1
+
+    goal = MoveBaseGoal()
+    goal.target_pose.pose = pose.pose
+    goal.target_pose.header.stamp = rospy.Time.now()
+    goal.target_pose.header.frame_id = navigation_frame
+
+    movebase_client.send_goal(goal)
+
 def setup_grid(): 
    grid = ProximityGridMsg()
-   angle_min = rospy.get_param('~angle_min', -2.09) # [rad]   
-   angle_max = rospy.get_param('~angle_max',  2.09) # [rad]   
-   angle_increment = rospy.get_param('~angle_increment', 0.16) # [rad] 
+   angle_min = rospy.get_param('~angle_min', -pi) # [rad]   
+   angle_max = rospy.get_param('~angle_max',  pi) # [rad]   
+   angle_increment = rospy.get_param('~angle_increment', pi/18) # [rad] 
    range_min = rospy.get_param('~range_min', 0) # [m]   
    range_max = rospy.get_param('~range_max', 6) # [m] 
    frame_id = rospy.get_param('~frame_id', 'wcias_base_link') 
@@ -112,8 +143,13 @@ if __name__ == '__main__':
    var_tmp = NeuroEvent()
    var_tmp.event = 0
 
+   global movebase_client, power
+   power = 1
 
-
+   if (mode == 1):
+      movebase_client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+      movebase_client.wait_for_server()
+      rospy.Timer(rospy.Duration(3), request_new_target_callback)
 
    rospy.Subscriber("/joy", Joy, joy_callback, queue_size=1)
 
