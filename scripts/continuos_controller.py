@@ -33,9 +33,9 @@ def joy_callback(Joy):
    stop = Joy.buttons[2]
 
    if (Joy.buttons[5] == 1):
-      power = power + 1
+      power = power / 10
    if (Joy.buttons[4] == 1):
-      power = power - 1
+      power = power * 10
 
    global start_srv, stop_srv
 
