@@ -54,11 +54,11 @@ def generate_yon():
    return
 
 def setup_services():
-    global start_srv, stop_srv
-    rospy.wait_for_service("/navigation/navigation_start")
-    rospy.wait_for_service("/navigation/navigation_stop")
-    start_srv = rospy.ServiceProxy("/navigation/navigation_start", Empty)
-    stop_srv  = rospy.ServiceProxy("/navigation/navigation_stop",  Empty)
+   global start_srv, stop_srv
+   rospy.wait_for_service("/navigation/navigation_start")
+   rospy.wait_for_service("/navigation/navigation_stop")
+   start_srv = rospy.ServiceProxy("/navigation/navigation_start", Empty)
+   stop_srv  = rospy.ServiceProxy("/navigation/navigation_stop",  Empty)
 
 def gen_att(grid):
    global straight, turn, stop, power

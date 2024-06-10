@@ -6,22 +6,24 @@
 
   <!-- Load controller configuration -->
   <rosparam command="load" file="$(find wheelchair_iaslab_control)/config/control.yaml" />
+  
   <param name="wcias_controller/left_wheel" value="$(arg prefix)left_main_wheel_joint"/>
   <param name="wcias_controller/right_wheel" value="$(arg prefix)right_main_wheel_joint"/>
   <param name="wcias_controller/base_frame_id" value="$(arg prefix)base_footprint" />
   <param name="wcias_controller/odom_frame_id" value="$(arg prefix)odom" />
 
   <!-- Spawn controllers -->
-  <!--
-  <node name="base_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-        args="wcias_joint_state_controller wcias_controller"/>
-  -->
+  <!-- <node name="base_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        args="wcias_joint_state_controller wcias_controller"/> -->
+  <node name="velPID" pkg="wheelchair_iaslab_control" type="my_stuPID.py" />
+
+  <node name="djoy" pkg="wheelchair_iaslab_control" type="djoy.py" />
 
   <!-- Twist Mux -->
   <node pkg="twist_mux" type="twist_mux" name="twist_mux">
     <rosparam command="load" file="$(find wheelchair_iaslab_control)/config/twist_mux.yaml" />
-    <!--<remap from="cmd_vel_out" to="wheelchair_iaslab_velocity_base_controller/cmd_vel" />-->
-    <remap from="cmd_vel_out" to="wcias_controller/cmd_vel" />
+    <!-- <remap from="cmd_vel_out" to="wheelchair_iaslab_velocity_base_controller/cmd_vel" />-->
+    <remap from="cmd_vel_out" to="cmd_vel_raw" />
   </node>
 
 </launch>
