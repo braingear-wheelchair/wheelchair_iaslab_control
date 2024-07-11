@@ -26,7 +26,7 @@ class my_stuPID:
         self.err = Twist()
         self.rate = rospy.Rate(RATE)
         self.ptime = time.time()
-        self.pid_x = PID(10.0,0.01,0.001)
+        self.pid_x = PID(10.0,0.0, 0.0)
         self.pid_z = PID(1.0,0.0,0.0)
         self.dt = 1 / RATE
         self.is_zero = True
@@ -82,7 +82,7 @@ class my_stuPID:
     def run(self):
         while not rospy.is_shutdown():
             ctime = time.time()
-            if ((ctime - self.ptime)*1000 < 40 ):
+            if ((ctime - self.ptime)*1000 < 400 ):
                 self.compute_pid()
             else:
                 self.err = Twist()
