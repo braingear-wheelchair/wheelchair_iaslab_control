@@ -12,6 +12,9 @@ wcias_controller:
   twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
   cmd_vel_timeout: 0.25
 
+  wheel_separation: 0.535
+  wheel_radius: 0.17
+
   # Wheel separation and radius multipliers
   wheel_separation_multiplier: 1.0 # default: 1.0
   wheel_radius_multiplier    : 1.0 # default: 1.0

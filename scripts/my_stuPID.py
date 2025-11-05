@@ -6,17 +6,17 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import copysign
 
-RATE = 50
-MAX_DX = 0.5
-MAX_DZ = 0.5
+RATE = 150
+MAX_DX = 0.9
+MAX_DZ = 0.9
 
 class PID:
     def __init__(self, p,d,i):
-        self.p = 1
-        self.d = 0
-        self.i = 0
-        self.prev_err = 0
-        self.integral_err = 0
+        self.p = 1.0
+        self.d = 0.0
+        self.i = 0.0
+        self.prev_err = 0.0
+        self.integral_err = 0.0
 
 class my_stuPID:
     def __init__(self):
@@ -26,8 +26,8 @@ class my_stuPID:
         self.err = Twist()
         self.rate = rospy.Rate(RATE)
         self.ptime = time.time()
-        self.pid_x = PID(10.0,0.0, 0.0)
-        self.pid_z = PID(1.0,0.0,0.0)
+        self.pid_x = PID(100.0,15.0, 2000.0)
+        self.pid_z = PID(100.0,15.0, 2000.0)
         self.dt = 1 / RATE
         self.is_zero = True
         
@@ -58,8 +58,8 @@ class my_stuPID:
         dx = self.cmd_vel.linear.x - self.cmd_odom.linear.x
         dz = self.cmd_vel.angular.z - self.cmd_odom.angular.z
 
-        self.pid_x.integral_err += dx * self.dt
-        self.pid_z.integral_err += dz * self.dt
+        self.pid_x.integral_err = self.pid_x.integral_err + dx * self.dt
+        self.pid_z.integral_err = self.pid_z.integral_err + dz * self.dt
 
         d_ex = (dx - self.pid_x.prev_err) / self.dt
         d_ez = (dz - self.pid_z.prev_err) / self.dt
@@ -76,8 +76,8 @@ class my_stuPID:
         if (abs(pid_z) > MAX_DZ):
             pid_z = copysign(MAX_DX, pid_z)
 
-        self.err.linear.x = self.cmd_vel.linear.x + pid_x
-        self.err.angular.z = self.cmd_vel.angular.z + pid_z
+        self.err.linear.x  = self.cmd_vel.linear.x  #+ pid_x
+        self.err.angular.z = self.cmd_vel.angular.z #+ pid_z
 
     def run(self):
         while not rospy.is_shutdown():

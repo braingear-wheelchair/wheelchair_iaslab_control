@@ -10,7 +10,7 @@ class Control:
     def __init__(self):
         rospy.init_node("djoy")
         self.cmd = Twist()
-        self.pub = rospy.Publisher('djoy/cmd_vel', Twist, queue_size=1)
+        self.pub = rospy.Publisher('/djoy/cmd_vel', Twist, queue_size=1)
         self.e_stop = Bool()
         self.e_stop.data = False
         self.pub_e_stop = rospy.Publisher('/djoy/e_stop', Bool, queue_size=1)
